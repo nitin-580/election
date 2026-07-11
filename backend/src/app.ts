@@ -53,13 +53,13 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 });
 
 const startServer = async () => {
-  // Connect Databases
-  await connectDB();
-  await connectRedis();
-
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode.`);
   });
+
+  // Connect Databases in background so it doesn't block startup probes
+  connectDB().catch(err => console.error('Delayed MongoDB connection failed:', err));
+  connectRedis().catch(err => console.error('Delayed Redis connection failed:', err));
 };
 
 startServer();
