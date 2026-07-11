@@ -9,6 +9,7 @@ export default function UsersManagementPage() {
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   
   // Form State
   const [username, setUsername] = useState('');
@@ -60,6 +61,10 @@ export default function UsersManagementPage() {
       setUsername('');
       setPassword('');
       setRole('Watcher');
+      setTimeout(() => {
+        setShowCreateModal(false);
+        setCreateSuccess('');
+      }, 1500);
     } catch (err: any) {
       setCreateError(err.response?.data?.message || 'Failed to create user account.');
     } finally {
@@ -84,74 +89,26 @@ export default function UsersManagementPage() {
 
   return (
     <div className="space-y-6">
-      {/* Title */}
-      <div>
-        <h1 className="text-3xl font-extrabold tracking-tight">System User Accounts</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">Manage credentials, assign operational roles, and block access.</p>
+      {/* Title Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight">System User Accounts</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Manage credentials, assign operational roles, and block access.</p>
+        </div>
+        <div>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="inline-flex items-center space-x-2 rounded-xl bg-primary text-primary-foreground px-4 py-2.5 text-sm font-semibold hover:opacity-90 transition-opacity w-full sm:w-auto justify-center"
+          >
+            <UserPlus className="h-4.5 w-4.5" />
+            <span>Add New User</span>
+          </button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Create User Form */}
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-sm h-fit">
-          <h2 className="text-lg font-bold flex items-center gap-2 mb-4">
-            <UserPlus className="h-5 w-5 text-primary" />
-            Provision Account
-          </h2>
-
-          <form onSubmit={handleCreateUser} className="space-y-4">
-            <div>
-              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Username</label>
-              <input
-                type="text"
-                required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="e.g. volunteer_john"
-                className="block w-full rounded-lg border border-border bg-background p-2.5 text-sm mt-1 focus:ring-1 focus:ring-primary focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Password</label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="block w-full rounded-lg border border-border bg-background p-2.5 text-sm mt-1 focus:ring-1 focus:ring-primary focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Role</label>
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                className="block w-full rounded-lg border border-border bg-background p-2.5 text-sm mt-1 focus:outline-none"
-              >
-                <option value="Watcher">Watcher (Read-only)</option>
-                <option value="Marker">Marker (Update Voted/Mobile)</option>
-                <option value="Editor">Editor (Add/Edit Students)</option>
-                <option value="Admin">Admin (Full Control)</option>
-              </select>
-            </div>
-
-            {createError && <p className="text-xs text-danger font-semibold mt-2">{createError}</p>}
-            {createSuccess && <p className="text-xs text-success font-semibold mt-2">{createSuccess}</p>}
-
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full bg-primary text-primary-foreground py-2.5 rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5"
-            >
-              {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Create User Account'}
-            </button>
-          </form>
-        </div>
-
+      <div className="grid grid-cols-1 gap-8">
         {/* Users List Table */}
-        <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm lg:col-span-2">
+        <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
           <div className="p-6 border-b border-border">
             <h2 className="text-lg font-bold">Authorized Users</h2>
             <p className="text-xs text-muted-foreground mt-0.5">List of active team members and authorization states.</p>
@@ -161,10 +118,10 @@ export default function UsersManagementPage() {
             <table className="w-full text-sm text-left">
               <thead className="bg-muted text-muted-foreground text-xs uppercase tracking-wider">
                 <tr>
-                  <th className="px-6 py-4">Username</th>
-                  <th className="px-6 py-4">Role</th>
-                  <th className="px-6 py-4 text-center">Status</th>
-                  <th className="px-6 py-4 text-right">Suspend Access</th>
+                  <th className="px-4 md:px-6 py-4">Username</th>
+                  <th className="px-4 md:px-6 py-4">Role</th>
+                  <th className="px-4 md:px-6 py-4 text-center">Status</th>
+                  <th className="px-4 md:px-6 py-4 text-right">Suspend Access</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -178,8 +135,8 @@ export default function UsersManagementPage() {
                 ) : (
                   users.map((u) => (
                     <tr key={u.id || u._id} className="hover:bg-muted/30 transition-colors">
-                      <td className="px-6 py-4 font-bold text-foreground">{u.username}</td>
-                      <td className="px-6 py-4 text-xs font-semibold">
+                      <td className="px-4 md:px-6 py-4 font-bold text-foreground">{u.username}</td>
+                      <td className="px-4 md:px-6 py-4 text-xs font-semibold">
                         <span className={`inline-flex items-center gap-1 rounded-md px-2 py-1 ${
                           u.role === 'Admin' ? 'bg-indigo-500/10 text-indigo-500' :
                           u.role === 'Editor' ? 'bg-blue-500/10 text-blue-500' :
@@ -190,7 +147,7 @@ export default function UsersManagementPage() {
                           {u.role}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-center text-xs">
+                      <td className="px-4 md:px-6 py-4 text-center text-xs">
                         {u.isBlocked ? (
                           <span className="inline-flex items-center gap-1 text-danger bg-danger/10 px-2 py-0.5 rounded font-bold">
                             <ShieldAlert className="h-3.5 w-3.5" /> Blocked
@@ -201,7 +158,7 @@ export default function UsersManagementPage() {
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-4 md:px-6 py-4 text-right">
                         <button
                           onClick={() => handleToggleBlock(u.id || u._id, u.username)}
                           disabled={currentUser?.id === (u.id || u._id)}
@@ -222,6 +179,80 @@ export default function UsersManagementPage() {
           </div>
         </div>
       </div>
+
+      {/* Add User Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowCreateModal(false)} />
+          
+          <div className="relative w-full max-w-md bg-card border border-border rounded-2xl shadow-2xl p-6 overflow-y-auto animate-in fade-in zoom-in duration-200">
+            <h2 className="text-xl font-bold flex items-center gap-2 mb-4">
+              <UserPlus className="h-5.5 w-5.5 text-primary" />
+              Provision Account
+            </h2>
+
+            <form onSubmit={handleCreateUser} className="space-y-4">
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Username</label>
+                <input
+                  type="text"
+                  required
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="e.g. volunteer_john"
+                  className="block w-full rounded-lg border border-border bg-background p-2.5 text-sm mt-1 focus:ring-1 focus:ring-primary focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Password</label>
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="block w-full rounded-lg border border-border bg-background p-2.5 text-sm mt-1 focus:ring-1 focus:ring-primary focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Role</label>
+                <select
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="block w-full rounded-lg border border-border bg-background p-2.5 text-sm mt-1 focus:outline-none"
+                >
+                  <option value="Watcher">Watcher (Read-only)</option>
+                  <option value="Marker">Marker (Update Voted/Mobile)</option>
+                  <option value="Editor">Editor (Add/Edit Students)</option>
+                  <option value="Admin">Admin (Full Control)</option>
+                </select>
+              </div>
+
+              {createError && <p className="text-xs text-danger font-semibold mt-2">{createError}</p>}
+              {createSuccess && <p className="text-xs text-success font-semibold mt-2">{createSuccess}</p>}
+
+              <div className="flex space-x-3 pt-4 border-t border-border mt-6">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="flex-1 bg-primary text-primary-foreground py-2.5 rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5 disabled:opacity-50"
+                >
+                  {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Create User'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="flex-1 bg-muted hover:bg-muted-foreground/10 text-foreground py-2.5 rounded-xl font-semibold text-sm transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
